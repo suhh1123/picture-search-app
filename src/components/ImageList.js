@@ -3,8 +3,8 @@ import ImageCard from "./ImageCard";
 import "./ImageList.css";
 
 function ImageList(props) {
-  const images = props.images.map((image) => {
-    return <ImageCard key={image.id} image={image} />;
+  const images = props.images.map((image, index) => {
+    return <ImageCard key={index} image={image} />;
   });
 
   return <div className="image-list">{images}</div>;

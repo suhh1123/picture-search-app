@@ -18,11 +18,11 @@ class ImageCard extends React.Component {
   };
 
   render() {
-    const { alt, src } = this.props.image;
+    const { url } = this.props.image;
 
     return (
       <div style={{ gridRowEnd: `span ${this.state.spans}` }}>
-        <img ref={this.imageRef} alt={alt} src={src.medium} />
+        <img ref={this.imageRef} src={url} />
       </div>
     );
   }

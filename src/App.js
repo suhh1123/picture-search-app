@@ -11,13 +11,13 @@ class App extends React.Component {
   }
 
   onSearchSubmit = async (term) => {
-    const response = await images_api.get("/v1/search", {
+    const response = await images_api.get("/test/search", {
       params: {
-        query: term,
+        q: term,
       },
     });
-    this.setState({ images: response.data.photos });
-    console.log(response.data);
+    this.setState({ images: response.data.result });
+    console.log(response);
   };
 
   render() {
