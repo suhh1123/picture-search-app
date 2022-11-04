@@ -1,16 +1,26 @@
 import React, { useState } from "react";
+import images_api from "../api/images_api";
 
 function PostBar() {
   const [term, setTerm] = useState();
-  const [imgPath, setImgPath] = useState();
+  const [imgFile, setImgFile] = useState();
 
-  const onFormSubmit = (event) => {
+  const onFormSubmit = async (event) => {
     event.preventDefault();
     console.log(term);
-    console.log(imgPath);
+    console.log(imgFile);
     console.log("submit");
 
     // make an axio call to PUT image to S3 bucket
+    const response = await images_api.put(`/test/photos`, imgFile, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": imgFile.type,
+        "file-name": imgFile.name,
+        "x-amz-meta-customLabels": term,
+      },
+    });
+    console.log(response);
   };
 
   return (
@@ -29,7 +39,7 @@ function PostBar() {
               id="img"
               name="img"
               accept="image/*"
-              onChange={(e) => setImgPath(e.target.value)}
+              onChange={(e) => setImgFile(e.target.files[0])}
             />
           </div>
           <div className="field">
