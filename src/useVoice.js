@@ -10,8 +10,7 @@ if (window.webkitSpeechRecognition) {
   speech = null;
 }
 
-const useVoice = () => {
-  const [text, setText] = useState("");
+const useVoice = ({ setTerm }) => {
   const [isListening, setIsListening] = useState(false);
 
   const listen = () => {
@@ -28,17 +27,16 @@ const useVoice = () => {
       return;
     }
     speech.onresult = (event) => {
-      setText(event.results[event.results.length - 1][0].transcript);
+      setTerm(event.results[event.results.length - 1][0].transcript);
       setIsListening(false);
       speech.stop();
     };
   }, []);
 
   return {
-    text,
     isListening,
     listen,
-    voiceSupported: speech !== null
+    voiceSupported: speech !== null,
   };
 };
 

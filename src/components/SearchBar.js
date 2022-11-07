@@ -1,18 +1,32 @@
 import React, { useState } from "react";
+import { useVoice } from "../useVoice";
 
 function SearchBar(props) {
   const [term, setTerm] = useState("");
+  const { isListening, listen, voiceSupported } = useVoice({ setTerm });
 
   const onFormSubmit = (event) => {
     event.preventDefault();
     props.onSubmit(term);
   };
 
+  const onListen = (event) => {
+    listen();
+  };
+
   return (
     <div className="ui segment">
       <form className="ui form" onSubmit={onFormSubmit}>
         <div className="field">
-          <label>Image Search</label>
+          <div
+            className="fields"
+            style={{ position: "flex", alignItems: "center" }}
+          >
+            <label>Image Search</label>
+            <button onClick={onListen} style={{ marginLeft: "10px" }}>
+              Listen
+            </button>
+          </div>
           <input
             type="text"
             value={term}
