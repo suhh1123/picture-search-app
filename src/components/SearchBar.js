@@ -11,23 +11,26 @@ function SearchBar(props) {
   };
 
   const onListen = (event) => {
-    event.preventDefault();
     listen();
   };
 
   return (
     <div className="ui segment">
-      <form className="ui form" onSubmit={onFormSubmit}>
+      <div
+        className="fields"
+        style={{ position: "flex", alignItems: "center" }}
+      >
+        <label style={{ fontWeight: "bold" }}>Image Search</label>
+        <button onClick={onListen} style={{ marginLeft: "10px" }}>
+          Listen
+        </button>
+      </div>
+      <form
+        className="ui form"
+        onSubmit={onFormSubmit}
+        style={{ marginTop: "10px" }}
+      >
         <div className="field">
-          <div
-            className="fields"
-            style={{ position: "flex", alignItems: "center" }}
-          >
-            <label>Image Search</label>
-            <button onClick={onListen} style={{ marginLeft: "10px" }}>
-              Listen
-            </button>
-          </div>
           <input
             type="text"
             value={term}
