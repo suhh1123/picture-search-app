@@ -11,6 +11,7 @@ function SearchBar(props) {
   };
 
   const onListen = (event) => {
+    event.preventDefault();
     listen();
   };
 
