@@ -1,0 +1,461 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    ApiGatewayResource:
+        Type: "AWS::ApiGateway::Resource"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            PathPart: "search"
+            ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+
+    ApiGatewayResource2:
+        Type: "AWS::ApiGateway::Resource"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            PathPart: "photos"
+            ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+
+    ApiGatewayMethod:
+        Type: "AWS::ApiGateway::Method"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            ResourceId: !Ref ApiGatewayResource
+            HttpMethod: "GET"
+            AuthorizationType: "NONE"
+            ApiKeyRequired: false
+            RequestParameters: 
+                "method.request.querystring.q": true
+            MethodResponses: 
+              - 
+                ResponseModels: 
+                    "application/json": "Empty"
+                StatusCode: "200"
+              - 
+                ResponseModels: 
+                    "application/json": "Error"
+                StatusCode: "403"
+              - 
+                ResponseModels: 
+                    "application/json": "Error"
+                StatusCode: "500"
+            Integration: 
+                CacheNamespace: !Ref ApiGatewayResource
+                ContentHandling: "CONVERT_TO_TEXT"
+                IntegrationHttpMethod: "POST"
+                IntegrationResponses: 
+                  - 
+                    ResponseTemplates: {}
+                    StatusCode: "200"
+                PassthroughBehavior: "WHEN_NO_MATCH"
+                TimeoutInMillis: 29000
+                Type: "AWS_PROXY"
+                Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction3}/invocations"
+
+    ApiGatewayMethod2:
+        Type: "AWS::ApiGateway::Method"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            ResourceId: !Ref ApiGatewayResource2
+            HttpMethod: "PUT"
+            AuthorizationType: "NONE"
+            ApiKeyRequired: false
+            RequestParameters: {}
+            MethodResponses: 
+              - 
+                ResponseModels: 
+                    "application/json": "Empty"
+                ResponseParameters: 
+                    "method.response.header.Access-Control-Allow-Origin": false
+                StatusCode: "200"
+            Integration: 
+                CacheNamespace: !Ref ApiGatewayResource2
+                ContentHandling: "CONVERT_TO_TEXT"
+                IntegrationHttpMethod: "POST"
+                IntegrationResponses: 
+                  - 
+                    ResponseParameters: 
+                        "method.response.header.Access-Control-Allow-Origin": "'*'"
+                    StatusCode: "200"
+                PassthroughBehavior: "WHEN_NO_MATCH"
+                TimeoutInMillis: 29000
+                Type: "AWS_PROXY"
+                Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction2}/invocations"
+
+    ApiGatewayMethod3:
+        Type: "AWS::ApiGateway::Method"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            ResourceId: !Ref ApiGatewayResource2
+            HttpMethod: "OPTIONS"
+            AuthorizationType: "NONE"
+            ApiKeyRequired: false
+            MethodResponses: 
+              - 
+                ResponseModels: 
+                    "application/json": "Empty"
+                ResponseParameters: 
+                    "method.response.header.Access-Control-Allow-Headers": false
+                    "method.response.header.Access-Control-Allow-Methods": false
+                    "method.response.header.Access-Control-Allow-Origin": false
+                StatusCode: "200"
+            Integration: 
+                CacheNamespace: !Ref ApiGatewayResource2
+                ContentHandling: "CONVERT_TO_TEXT"
+                IntegrationHttpMethod: "POST"
+                IntegrationResponses: 
+                  - 
+                    ResponseTemplates: {}
+                    StatusCode: "200"
+                PassthroughBehavior: "WHEN_NO_MATCH"
+                TimeoutInMillis: 29000
+                Type: "AWS_PROXY"
+                Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunction5}/invocations"
+
+    ApiGatewayStage:
+        Type: "AWS::ApiGateway::Stage"
+        Properties:
+            StageName: "test"
+            DeploymentId: !Ref ApiGatewayDeployment
+            RestApiId: !Ref ApiGatewayRestApi
+            Description: "testing file upload"
+            CacheClusterEnabled: false
+            TracingEnabled: false
+
+    ApiGatewayRestApi:
+        Type: "AWS::ApiGateway::RestApi"
+        Properties:
+            Name: "AI Photo Search CF"
+            Description: "AI Photo Search application, built during the Cloud and Big Data course at Columbia University."
+            ApiKeySourceType: "HEADER"
+            BinaryMediaTypes: 
+              - "*/*"
+            EndpointConfiguration: 
+                Types: 
+                  - "REGIONAL"
+
+    ApiGatewayDeployment:
+        Type: "AWS::ApiGateway::Deployment"
+        DependsOn:
+          - "ApiGatewayMethod"
+          - "ApiGatewayMethod2"
+          - "ApiGatewayMethod3"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+
+    LambdaFunction:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "index-photos-cf"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "comse6998-a2-lambda"
+                S3Key: "index-photos.zip"
+                # S3ObjectVersion: "QBEcArd6hYVIIehXEV4Jh.4C3JMQ6Xcw"
+            MemorySize: 128
+            Role: !GetAtt IAMRole2.Arn
+            Runtime: "python3.9"
+            Timeout: 60
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+
+    LambdaFunction2:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "upload-photo-cf"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "comse6998-a2-lambda"
+                S3Key: "upload-photo.zip"
+                # S3ObjectVersion: "070GFrAOrWu9xIl0tS4gbufpwDZOt6Il"
+            MemorySize: 128
+            Role: !GetAtt IAMRole6.Arn
+            Runtime: "python3.9"
+            Timeout: 30
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+
+    LambdaFunction3:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "search-photos-cf"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "comse6998-a2-lambda"
+                S3Key: "search-photos.zip"
+                # S3ObjectVersion: "NJ0bBrWEu2nKGJo3U283xnE8.ywG5FGH"
+            MemorySize: 128
+            Role: !GetAtt IAMRole4.Arn
+            Runtime: "python3.9"
+            Timeout: 60
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+
+    LambdaFunction4:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "create-open-search-index-cf"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "comse6998-a2-lambda"
+                S3Key: "create-open-search-index.zip"
+                # S3ObjectVersion: "Jw0qnAHe4mtkgUVSfQ1NlWU96IzbOSGm"
+            MemorySize: 128
+            Role: !GetAtt IAMRole7.Arn
+            Runtime: "python3.9"
+            Timeout: 60
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+
+    LambdaFunction5:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "options-lambda-cf"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "comse6998-a2-lambda"
+                S3Key: "options-lambda.zip"
+                # S3ObjectVersion: "7C30MAVYl0yYkulPEu2kXR5e1oVFmAad"
+            MemorySize: 128
+            Role: !GetAtt IAMRole3.Arn
+            Runtime: "python3.9"
+            Timeout: 30
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+
+    # lambda permission for bucket2
+    LambdaPermission:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction.Arn
+            Principal: "s3.amazonaws.com"
+            SourceArn: "arn:aws:s3:::comse6998-a2-b2-cf"
+
+    LambdaPermission2:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction5.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/OPTIONS/photos"
+
+    LambdaPermission3:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction3.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/GET/search"
+
+    LambdaPermission4:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction2.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/PUT/photos"
+
+    IAMRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"apigateway.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/apigw-s3-6889-a2"
+              - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+            Description: "Allows API Gateway to push and get objects from S3 bucket"
+
+    IAMRole2:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-efed3fc7-3f24-44c2-a4c7-b02079f57144"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaVPCAccessExecutionRole-4c3e6083-1524-4932-a0de-3d2d38c2707c"
+              - "arn:aws:iam::aws:policy/AmazonRekognitionFullAccess"
+              - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+              - "arn:aws:iam::aws:policy/AmazonOpenSearchServiceFullAccess"
+
+    IAMRole3:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-5bbd025e-8128-4995-b28c-823778dca90f"
+
+    IAMRole4:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-c4af7488-d054-4b2b-b406-2c374ab7cf5a"
+              - "arn:aws:iam::aws:policy/AmazonLexFullAccess"
+              - "arn:aws:iam::aws:policy/AmazonOpenSearchServiceFullAccess"
+
+    IAMRole5:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-d255424b-09dc-4e9f-b9ff-7ba806f65b37"
+              - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+
+    IAMRole6:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-ce597b29-f6bf-4535-9a6d-9b6a7e1c2c54"
+              - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+
+    IAMRole7:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaVPCAccessExecutionRole-f57522e2-f216-48ee-9165-577bad568e16"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-9a15e3ac-8165-45c7-8a9f-d26ab796948c"
+              - "arn:aws:iam::aws:policy/AmazonOpenSearchServiceFullAccess"
+
+    S3Bucket:
+        Type: "AWS::S3::Bucket"
+        Properties:
+            BucketName: "comse6998-a2-b1-cf"
+            WebsiteConfiguration: 
+                IndexDocument: "index.html"
+                ErrorDocument: "index.html"
+
+    S3Bucket2:
+        Type: "AWS::S3::Bucket"
+        DependsOn: "LambdaPermission"
+        Properties:
+            BucketName: "comse6998-a2-b2-cf"
+            NotificationConfiguration: 
+                LambdaConfigurations: 
+                  - 
+                    Event: "s3:ObjectCreated:Put"
+                    Function: !GetAtt LambdaFunction.Arn
+
+    S3BucketPolicy:
+        Type: "AWS::S3::BucketPolicy"
+        Properties:
+            Bucket: !Ref S3Bucket
+            PolicyDocument: 
+                Version: "2012-10-17"
+                Statement: 
+                  - 
+                    Sid: "Stmt1380877761162"
+                    Effect: "Allow"
+                    Principal: 
+                        AWS: "*"
+                    Action: "s3:GetObject"
+                    Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+
+    S3BucketPolicy2:
+        Type: "AWS::S3::BucketPolicy"
+        Properties:
+            Bucket: !Ref S3Bucket2
+            PolicyDocument: 
+                Version: "2008-10-17"
+                Id: "Policy1380877762691"
+                Statement: 
+                  - 
+                    Sid: "Stmt1380877761162"
+                    Effect: "Allow"
+                    Principal: 
+                        AWS: "*"
+                    Action: "s3:GetObject"
+                    Resource: !Sub "arn:aws:s3:::${S3Bucket2}/*"
+
+    LexBot:
+        Type: "AWS::Lex::Bot"
+        Properties:
+            Name: "PhotoBot-cf"
+            RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lexv2.amazonaws.com/AWSServiceRoleForLexV2Bots_NWEA398A22G"
+            DataPrivacy: 
+                ChildDirected: false
+            IdleSessionTTLInSeconds: 300
+
+    # OpenSearchServiceDomain:
+    #     Type: "AWS::OpenSearchService::Domain"
+    #     Properties:
+    #         DomainName: "photos-cf"
+    #         EngineVersion: "OpenSearch_1.3"
+    #         ClusterConfig: 
+    #             ColdStorageOptions: 
+    #                 Enabled: false
+    #             DedicatedMasterEnabled: false
+    #             InstanceCount: 3
+    #             InstanceType: "t3.small.elasticsearch"
+    #             ZoneAwarenessEnabled: false
+    #             WarmEnabled: false
+    #         AccessPolicies: !Sub "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Action\":\"es:*\",\"Resource\":\"arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/photos/*\"}]}"
+    #         SnapshotOptions: {}
+    #         snapshot_options: {}
+    #         EncryptionAtRestOptions: 
+    #             Enabled: true
+    #             KmsKeyId: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/ef3f7873-c1b4-4208-a168-ed6d55cefdff"
+    #         NodeToNodeEncryptionOptions: 
+    #             Enabled: true
+    #         AdvancedOptions: 
+    #             "indices.fielddata.cache.size": "20"
+    #             "indices.query.bool.max_clause_count": "1024"
+    #             override_main_response_version: "false"
+    #             "rest.action.multi.allow_explicit_index": "true"
+    #         EBSOptions: 
+    #             EBSEnabled: true
+    #             VolumeType: "gp3"
+    #             VolumeSize: 10
+    #             Iops: 3000
+    #             Throughput: 125
+    #         CognitoOptions: 
+    #             Enabled: false
+    #         DomainEndpointOptions: 
+    #             EnforceHTTPS: true
+    #             TLSSecurityPolicy: "Policy-Min-TLS-1-0-2019-07"
+    #             CustomEndpointEnabled: false
+    #         AdvancedSecurityOptions: 
+    #             Enabled: true
+    #             InternalUserDatabaseEnabled: true
+    #             AnonymousAuthEnabled: false
+
