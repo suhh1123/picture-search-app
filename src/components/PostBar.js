@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import images_api from "../api/images_api";
 
 function PostBar() {
-  const [term, setTerm] = useState();
+  const [term, setTerm] = useState("");
   const [imgFile, setImgFile] = useState();
 
   const onFormSubmit = async (event) => {
@@ -14,7 +14,6 @@ function PostBar() {
     // make an axio call to PUT image to S3 bucket
     const response = await images_api.put(`/test/photos`, imgFile, {
       headers: {
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": imgFile.type,
         "file-name": imgFile.name,
         "x-amz-meta-customLabels": term,
