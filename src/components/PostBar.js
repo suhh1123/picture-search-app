@@ -17,6 +17,7 @@ function PostBar() {
         "Content-Type": imgFile.type,
         "file-name": imgFile.name,
         "x-amz-meta-customLabels": term,
+        "x-api-key": "ECMvtpY7nY5DHQIMZGavAz5LsEdRqqa8ovRiFCQ0",
       },
     });
     console.log(response);
